@@ -8,6 +8,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AEvaluationGameCharacter
@@ -43,8 +44,25 @@ AEvaluationGameCharacter::AEvaluationGameCharacter()
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
+	// Climbing
+	bIsCliming = false;
+	ClimbSpeedUpValue = 100.f;
+	Collision = CreateDefaultSubobject<USphereComponent>(TEXT("SphereTrace"));
+	Collision->SetSphereRadius(16.f);
+	Collision->SetRelativeLocation(FVector::ZeroVector);
+	Collision->SetCollisionProfileName("Trace");
+	Collision->SetHiddenInGame(false);
+
+	Collision->OnComponentBeginOverlap.AddDynamic(this, &AEvaluationGameCharacter::OnOverlapBegin);
+	Collision->OnComponentEndOverlap.AddDynamic(this, &AEvaluationGameCharacter::OnOverlapEnd);
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
+}
+
+/** Begin Play() */
+void AEvaluationGameCharacter::BeginPlay()
+{
+	Super::BeginPlay();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -114,13 +132,20 @@ void AEvaluationGameCharacter::MoveForward(float Value)
 {
 	if ((Controller != nullptr) && (Value != 0.0f))
 	{
-		// find out which way is forward
-		const FRotator Rotation = Controller->GetControlRotation();
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
+		if (bIsCliming)
+		{
+			LaunchCharacter(FVector(0.f, 0.f, Value * ClimbSpeedUpValue), true, true);
+		}
+		else
+		{
+			// find out which way is forward
+			const FRotator Rotation = Controller->GetControlRotation();
+			const FRotator YawRotation(0, Rotation.Yaw, 0);
 
-		// get forward vector
-		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-		AddMovementInput(Direction, Value);
+			// get forward vector
+			const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+			AddMovementInput(Direction, Value);
+		}
 	}
 }
 
@@ -137,4 +162,24 @@ void AEvaluationGameCharacter::MoveRight(float Value)
 		// add movement in that direction
 		AddMovementInput(Direction, Value);
 	}
+}
+
+// climbing
+void AEvaluationGameCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("start overlap event"));
+	bIsCliming = true;
+}
+
+void AEvaluationGameCharacter::OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("end overlap event"));
+	bIsCliming = false;
+}
+
+
+
+void AEvaluationGameCharacter::Tick(float perSecondTick)
+{
+
 }

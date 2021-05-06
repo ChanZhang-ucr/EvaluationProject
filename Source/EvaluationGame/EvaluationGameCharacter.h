@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+//#include "ArrowActor.h"
+#include "Components/SphereComponent.h"
 #include "EvaluationGameCharacter.generated.h"
 
 UCLASS(config=Game)
@@ -29,6 +31,28 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
 	float BaseLookUpRate;
 
+	UPROPERTY(EditAnywhere, Category = Force)
+	float ClimbSpeedUpValue;
+
+	///climbing
+	UPROPERTY(VisibleAnyWhere, BlueprintReadWrite, Category = Climbing)
+	class USphereComponent* Collision;
+
+	UFUNCTION()
+	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	UFUNCTION()
+	void OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	/** For climbing. */
+	bool bIsCliming;
+	// Start Direction
+	/*FVector StartDirection;
+	bool bIsBeginIntoWall = false;
+	FVector DistOfRoleToWall = FVector::ZeroVector;
+	// For arrows
+	FVector RelativeLoc = FVector(-100.f, 0.f, 0.f);
+	// Wall dist towards char
+	float DiffPlayIntoWallDis = 80.f;*/
 protected:
 
 	/** Resets HMD orientation in VR. */
@@ -63,6 +87,9 @@ protected:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	// End of APawn interface
 
+	//** begin play */
+	virtual void BeginPlay() override;
+	virtual void Tick(float perSecondTick) override;
 public:
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
