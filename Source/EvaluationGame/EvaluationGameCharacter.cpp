@@ -46,15 +46,16 @@ AEvaluationGameCharacter::AEvaluationGameCharacter()
 
 	// Climbing
 	bIsCliming = false;
+	CollisionCounter = 0;
 	ClimbSpeedUpValue = 100.f;
-	Collision = CreateDefaultSubobject<USphereComponent>(TEXT("SphereTrace"));
-	Collision->SetSphereRadius(16.f);
-	Collision->SetRelativeLocation(FVector::ZeroVector);
-	Collision->SetCollisionProfileName("Trace");
-	Collision->SetHiddenInGame(false);
+	CSphereRadius = 16.f;
+	ClimbEndingForceMultiplier = 3.5f;
 
-	Collision->OnComponentBeginOverlap.AddDynamic(this, &AEvaluationGameCharacter::OnOverlapBegin);
-	Collision->OnComponentEndOverlap.AddDynamic(this, &AEvaluationGameCharacter::OnOverlapEnd);
+	CCS_Init(CollisionDown, CSphereRadius, FVector(60.f, 0.f, -80.f), "CSphereDown");
+	CCS_Init(CollisionUp, CSphereRadius, FVector(60.f, 0.f, 80.f), "CSphereUp");
+	CCS_Init(CollisionLeft, CSphereRadius, FVector(60.f, -50.f, 0.f), "CSphereLeft");
+	CCS_Init(CollisionRight, CSphereRadius, FVector(60.f, 50.f, 0.f), "CSphereRight");
+
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
 }
@@ -167,17 +168,35 @@ void AEvaluationGameCharacter::MoveRight(float Value)
 // climbing
 void AEvaluationGameCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("start overlap event"));
-	bIsCliming = true;
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("start overlap event"));
+	CollisionCounter++;
+	if (CollisionCounter >= 3) {
+		bIsCliming = true;
+	}
 }
 
 void AEvaluationGameCharacter::OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("end overlap event"));
-	bIsCliming = false;
+	CollisionCounter--;
+	if (CollisionCounter <= 3) {
+		LaunchCharacter(FVector(0.f, 0.f, ClimbEndingForceMultiplier * ClimbSpeedUpValue), true, true);
+		bIsCliming = false;
+	}
 }
 
+void AEvaluationGameCharacter::CCS_Init(USphereComponent* Collision, float radius, FVector Location, FName name)
+{
+	Collision = CreateDefaultSubobject<USphereComponent>(name);
+	Collision->SetupAttachment(RootComponent);
+	Collision->SetSphereRadius(radius);
+	Collision->SetRelativeLocation(Location);
+	Collision->SetCollisionProfileName("Trace");
+	Collision->SetHiddenInGame(false);
 
+	Collision->OnComponentBeginOverlap.AddDynamic(this, &AEvaluationGameCharacter::OnOverlapBegin);
+	Collision->OnComponentEndOverlap.AddDynamic(this, &AEvaluationGameCharacter::OnOverlapEnd);
+}
 
 void AEvaluationGameCharacter::Tick(float perSecondTick)
 {

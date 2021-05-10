@@ -34,17 +34,29 @@ public:
 	UPROPERTY(EditAnywhere, Category = Force)
 	float ClimbSpeedUpValue;
 
-	///climbing
+	//climbing
 	UPROPERTY(VisibleAnyWhere, BlueprintReadWrite, Category = Climbing)
-	class USphereComponent* Collision;
+	class USphereComponent* CollisionDown;
+
+	UPROPERTY(VisibleAnyWhere, BlueprintReadWrite, Category = Climbing)
+	class USphereComponent* CollisionUp;
+
+	UPROPERTY(VisibleAnyWhere, BlueprintReadWrite, Category = Climbing)
+	class USphereComponent* CollisionLeft;
+
+	UPROPERTY(VisibleAnyWhere, BlueprintReadWrite, Category = Climbing)
+	class USphereComponent* CollisionRight;
 
 	UFUNCTION()
 	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 	UFUNCTION()
-	void OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+	void OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 	/** For climbing. */
 	bool bIsCliming;
+	int CollisionCounter;
+	float CSphereRadius;
+	float ClimbEndingForceMultiplier;
 	// Start Direction
 	/*FVector StartDirection;
 	bool bIsBeginIntoWall = false;
@@ -81,6 +93,9 @@ protected:
 
 	/** Handler for when a touch input stops. */
 	void TouchStopped(ETouchIndex::Type FingerIndex, FVector Location);
+
+	/** Climing collision sphere initialization*/
+	void CCS_Init(USphereComponent* Collision, float radius, FVector Location, FName name);
 
 protected:
 	// APawn interface
