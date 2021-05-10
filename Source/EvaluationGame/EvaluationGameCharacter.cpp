@@ -131,9 +131,9 @@ void AEvaluationGameCharacter::LookUpAtRate(float Rate)
 
 void AEvaluationGameCharacter::MoveForward(float Value)
 {
-	if ((Controller != nullptr) && (Value != 0.0f))
+	if ((Controller != nullptr) && (Value != 0.f))
 	{
-		if (bIsCliming)
+		if (bIsCliming && Value > 0.f)
 		{
 			LaunchCharacter(FVector(0.f, 0.f, Value * ClimbSpeedUpValue), true, true);
 		}
@@ -152,7 +152,7 @@ void AEvaluationGameCharacter::MoveForward(float Value)
 
 void AEvaluationGameCharacter::MoveRight(float Value)
 {
-	if ( (Controller != nullptr) && (Value != 0.0f) )
+	if ( (Controller != nullptr) && (Value != 0.f) )
 	{
 		// find out which way is right
 		const FRotator Rotation = Controller->GetControlRotation();
@@ -168,7 +168,7 @@ void AEvaluationGameCharacter::MoveRight(float Value)
 // climbing
 void AEvaluationGameCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("start overlap event"));
+	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("start overlap event"));
 	CollisionCounter++;
 	if (CollisionCounter >= 3) {
 		bIsCliming = true;
