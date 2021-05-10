@@ -95,7 +95,7 @@ protected:
 	void TouchStopped(ETouchIndex::Type FingerIndex, FVector Location);
 
 	/** Climing collision sphere initialization*/
-	void CCS_Init(USphereComponent* Collision, float radius, FVector Location, FName name);
+	void CCS_Init(USphereComponent* Collision, float radius, FVector Location, FName name, bool HideInGame);
 
 protected:
 	// APawn interface
