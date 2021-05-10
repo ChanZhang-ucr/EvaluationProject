@@ -12,3 +12,4 @@ Starting level: EvaluationStart(Evaluation_Start in widget name)
 
 (If the project ask you for ArrowActor Class, you may simply ignore it since it was has no effect for the current project. I was originally seeking to design an actor to detect collision with arrow then I found out that I don't need it for a simply wall climbing mechanics.) 
 
+(UE does not automatically help me push the changes in cpp files, so I just downloaded github desktop to help me with it.)
